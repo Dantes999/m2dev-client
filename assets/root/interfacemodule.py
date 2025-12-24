@@ -41,6 +41,8 @@ import miniMap
 import uiselectitem
 # END_OF_ACCESSORY_REFINE_ADD_METIN_STONE
 import uiScriptLocale
+import uiinstanceboard
+import uiinstancemanager
 
 import event
 import localeInfo
@@ -74,6 +76,8 @@ class Interface(object):
 		self.wndMiniMap = None
 		self.wndGuild = None
 		self.wndGuildBuilding = None
+		self.wndInstanceBoard = None
+		self.wndInstanceManager = None
 
 		self.listGMName = {}
 		self.wndQuestWindow = {}
@@ -122,6 +126,7 @@ class Interface(object):
 		self.wndChat.SetOpenChatLogEvent(ui.__mem_func__(self.ToggleChatLogWindow))
 
 	def __MakeTaskBar(self):
+		import dbg
 		wndTaskBar = uiTaskBar.TaskBar()
 		wndTaskBar.LoadWindow()
 		self.wndTaskBar = wndTaskBar
@@ -129,11 +134,16 @@ class Interface(object):
 		self.wndTaskBar.SetToggleButtonEvent(uiTaskBar.TaskBar.BUTTON_INVENTORY, ui.__mem_func__(self.ToggleInventoryWindow))
 		self.wndTaskBar.SetToggleButtonEvent(uiTaskBar.TaskBar.BUTTON_MESSENGER, ui.__mem_func__(self.ToggleMessenger))
 		self.wndTaskBar.SetToggleButtonEvent(uiTaskBar.TaskBar.BUTTON_SYSTEM, ui.__mem_func__(self.ToggleSystemDialog))
+		dbg.TraceError("IS_EXPANDED: " + str(uiTaskBar.TaskBar.IS_EXPANDED))
 		if uiTaskBar.TaskBar.IS_EXPANDED:
+			dbg.TraceError("Creating ExpandedTaskBar...")
 			self.wndTaskBar.SetToggleButtonEvent(uiTaskBar.TaskBar.BUTTON_EXPAND, ui.__mem_func__(self.ToggleExpandedButton))
 			self.wndExpandedTaskBar = uiTaskBar.ExpandedTaskBar()
 			self.wndExpandedTaskBar.LoadWindow()
+			dbg.TraceError("Binding Instance button event...")
 			self.wndExpandedTaskBar.SetToggleButtonEvent(uiTaskBar.ExpandedTaskBar.BUTTON_DRAGON_SOUL, ui.__mem_func__(self.ToggleDragonSoulWindow))
+			# self.wndExpandedTaskBar.SetToggleButtonEvent(uiTaskBar.ExpandedTaskBar.BUTTON_INSTANCE, ui.__mem_func__(self.ToggleInstanceBoard))
+			dbg.TraceError("Instance button event bound successfully")
 
 		else:
 			self.wndTaskBar.SetToggleButtonEvent(uiTaskBar.TaskBar.BUTTON_CHAT, ui.__mem_func__(self.ToggleChat))
@@ -192,6 +202,7 @@ class Interface(object):
 		self.wndDragonSoul = wndDragonSoul
 		self.wndDragonSoulRefine = wndDragonSoulRefine
 		self.wndMiniMap = wndMiniMap
+		self.wndMiniMap.SetInstanceButtonEvent(ui.__mem_func__(self.ToggleInstanceBoard))
 		self.wndSafebox = wndSafebox
 		self.wndChatLog = wndChatLog
 		
@@ -277,6 +288,22 @@ class Interface(object):
 		self.wndItemSelect = uiselectitem.SelectItemWindow()
 		self.wndItemSelect.Hide()
 	# END_OF_ACCESSORY_REFINE_ADD_METIN_STONE
+
+	def __MakeInstanceBoard(self):
+		try:
+			import dbg
+			dbg.TraceError("Creating InstanceBoardWindow...")
+			self.wndInstanceBoard = uiinstanceboard.InstanceBoardWindow()
+			self.wndInstanceBoard.Hide()
+			dbg.TraceError("InstanceBoardWindow created successfully")
+		except Exception as e:
+			import dbg
+			dbg.TraceError("Failed to create InstanceBoardWindow: " + str(e))
+			import traceback
+			traceback.print_exc()
+
+	def __MakeInstanceManagerWindow(self):
+		self.wndInstanceManager = uiinstancemanager.InstanceManagerWindow()
 				
 	def MakeInterface(self):
 		self.__MakeMessengerWindow()
@@ -294,11 +321,14 @@ class Interface(object):
 		self.__MakeWebWindow()
 		self.__MakeCubeWindow()
 		self.__MakeCubeResultWindow()
-		
-		
+
+
 		# ACCESSORY_REFINE_ADD_METIN_STONE
 		self.__MakeItemSelectWindow()
 		# END_OF_ACCESSORY_REFINE_ADD_METIN_STONE
+
+		self.__MakeInstanceBoard()
+		self.__MakeInstanceManagerWindow()
 
 		self.questButtonList = []
 		self.whisperButtonList = []
@@ -512,6 +542,8 @@ class Interface(object):
 		del self.tipBoard
 		del self.bigBoard
 		del self.wndItemSelect
+		if self.wndInstanceManager:
+			del self.wndInstanceManager
 
 		self.questButtonList = []
 		self.whisperButtonList = []
@@ -1071,6 +1103,34 @@ class Interface(object):
 			self.wndChatLog.Hide()
 		else:
 			self.wndChatLog.Show()
+
+	def ToggleInstanceBoard(self):
+		import dbg
+		dbg.TraceError("=== ToggleInstanceBoard called ===")
+		try:
+			if hasattr(self, 'wndInstanceBoard') and self.wndInstanceBoard:
+				dbg.TraceError("wndInstanceBoard exists and is not None")
+				if self.wndInstanceBoard.IsShow():
+					self.wndInstanceBoard.Hide()
+					dbg.TraceError("Hiding instance board")
+				else:
+					dbg.TraceError("Opening instance board")
+					self.wndInstanceBoard.Open()
+			else:
+				dbg.TraceError("ERROR: wndInstanceBoard doesn't exist or is None!")
+				dbg.TraceError("Attempting to recreate...")
+				self.__MakeInstanceBoard()
+				if self.wndInstanceBoard:
+					self.wndInstanceBoard.Open()
+				else:
+					dbg.TraceError("Failed to create instance board!")
+		except Exception as e:
+			dbg.TraceError("ERROR in ToggleInstanceBoard: " + str(e))
+			import traceback
+			traceback.print_exc()
+
+	def OpenInstanceBoard(self):
+		self.wndInstanceBoard.Open()
 
 	def CheckGameButton(self):
 		if self.wndGameButton:

@@ -108,3 +108,4 @@ metin2_guild_village_02	614400	384000	2	2
 metin2_guild_village_03	256000	819200	2	2
 metin2_map_n_flame_dungeon_01	742400	614400	3	3
 metin2_map_n_snow_dungeon_01	512000	153600	4	3
+metin2_map_instance_lobby	5017600	5017600	1	1

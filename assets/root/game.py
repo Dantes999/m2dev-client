@@ -113,6 +113,20 @@ class GameWindow(ui.ScriptWindow):
 		self.__ServerCommand_Build()
 		self.__ProcessPreservedServerCommand()
 
+	def __InstanceListStart(self):
+		if self.interface and self.interface.wndInstanceManager:
+			self.interface.wndInstanceManager.ClearList()
+			if not self.interface.wndInstanceManager.IsShow():
+				self.interface.wndInstanceManager.Show()
+				self.interface.wndInstanceManager.SetTop()
+
+	def __InstanceListData(self, id, map_index, duration, player_names):
+		if self.interface and self.interface.wndInstanceManager:
+			self.interface.wndInstanceManager.AddInstance(id, map_index, duration, player_names)
+
+	def __InstanceListEnd(self):
+		pass
+
 	def __del__(self):
 		player.SetGameWindow(0)
 		net.ClearPhaseWindow(net.PHASE_WINDOW_GAME, self)
@@ -319,6 +333,7 @@ class GameWindow(ui.ScriptWindow):
 		onPressKeyDict[app.DIK_F2]	= lambda : self.__PressQuickSlot(5)
 		onPressKeyDict[app.DIK_F3]	= lambda : self.__PressQuickSlot(6)
 		onPressKeyDict[app.DIK_F4]	= lambda : self.__PressQuickSlot(7)
+		onPressKeyDict[app.DIK_F7]	= lambda : self.__OpenGMInstaceUI()
 
 		onPressKeyDict[app.DIK_LALT]		= lambda : self.ShowName()
 		onPressKeyDict[app.DIK_LCONTROL]	= lambda : self.ShowMouseImage()
@@ -427,6 +442,11 @@ class GameWindow(ui.ScriptWindow):
 		else:
 			self.MoveRight()
 	# MR-3: -- END OF -- Keyboard-enabled deck toggling
+	
+	def __OpenGMInstaceUI(self):
+		if self.interface and chr.IsGameMaster(player.GetMainCharacterIndex()):
+			print("GM Instance UI Toggle Opened")
+			self.interface.wndInstanceManager.Toggle()
 
 	def __PressNumKey(self,num):
 		if app.IsPressed(app.DIK_LCONTROL) or app.IsPressed(app.DIK_RCONTROL):
@@ -584,6 +604,25 @@ class GameWindow(ui.ScriptWindow):
 
 	def __NotifyError(self, msg):
 		chat.AppendChat(chat.CHAT_TYPE_INFO, msg)
+
+	def BINARY_ServerCommand_SetInstanceCooldown(self, timestamp):
+		# Called by server quest to set instance cooldown timestamp
+		try:
+			constInfo.INSTANCE_LAST_CREATION_TIME = int(timestamp)
+		except:
+			constInfo.INSTANCE_LAST_CREATION_TIME = 0
+
+	def BINARY_ServerCommand_SetInstanceState(self, state):
+		# Called by server quest to set instance state (map index)
+		print("BINARY_ServerCommand_SetInstanceState called with state: " + str(state))
+		try:
+			map_index = int(state)
+			background.SetMapIndex(map_index)
+			constInfo.IS_IN_INSTANCE = 1 if map_index >= 10000 else 0
+			print("SetInstanceState success. MapIndex: " + str(map_index) + ", IsInInstance: " + str(constInfo.IS_IN_INSTANCE))
+		except:
+			constInfo.IS_IN_INSTANCE = 0
+			print("SetInstanceState failed to parse state")
 
 	def ChangePKMode(self):
 
@@ -1918,6 +1957,15 @@ class GameWindow(ui.ScriptWindow):
 			# PRIVATE_SHOP_PRICE_LIST
 			"MyShopPriceList"		: self.__PrivateShop_PriceList,
 			# END_OF_PRIVATE_SHOP_PRICE_LIST
+
+			# INSTANCE_SYSTEM
+			"OpenInstanceBoard"		: self.__OpenInstanceBoard,
+			"SetInstanceState"		: self.BINARY_ServerCommand_SetInstanceState,
+			"SetInstanceCooldown"	: self.BINARY_ServerCommand_SetInstanceCooldown,
+			# END_OF_INSTANCE_SYSTEM
+			"instance_list_start"		: self.__InstanceListStart,
+			"instance_list_data"		: self.__InstanceListData,
+			"instance_list_end"			: self.__InstanceListEnd,
 		}
 
 		self.serverCommander=stringCommander.Analyzer()
@@ -1962,6 +2010,11 @@ class GameWindow(ui.ScriptWindow):
 	def CommandCloseMall(self):
 		self.interface.CommandCloseMall()
 	# END_OF_ITEM_MALL
+
+	# INSTANCE_SYSTEM
+	def __OpenInstanceBoard(self):
+		self.interface.OpenInstanceBoard()
+	# END_OF_INSTANCE_SYSTEM
 
 	def RefineSuceededMessage(self):
 		snd.PlaySound("sound/ui/make_soket.wav")

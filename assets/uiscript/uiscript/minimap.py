@@ -7,7 +7,7 @@ window = {
 	"y" : 0,
 
 	"width" : 136,
-	"height" : 137,
+	"height" : 137 + 40 ,
 
 	"children" :
 	(
@@ -20,7 +20,7 @@ window = {
 			"y" : 0,
 
 			"width" : 136,
-			"height" : 137,
+			"height" : 137+40,
 
 			"children" :
 			(
@@ -103,6 +103,20 @@ window = {
 					"y" : 140,
 
 					"text" : "",
+				},
+				## InstanceButton
+				{
+					"name" : "InstanceButton",
+					"type" : "button",
+
+					"x" : 50,
+					"y" : 160,
+
+					"default_image" : "d:/ymir work/ui/public/middle_button_01.sub",
+					"over_image" : "d:/ymir work/ui/public/middle_button_02.sub",
+					"down_image" : "d:/ymir work/ui/public/middle_button_03.sub",
+
+					"text" : "Instance",
 				},
 				## PositionInfo
 				{

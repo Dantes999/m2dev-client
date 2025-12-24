@@ -11,9 +11,7 @@ import systemSetting
 import ServerStateChecker
 import localeInfo
 import constInfo
-import uiCommon
 import time
-import serverCommandParser
 import ime
 import uiScriptLocale
 
@@ -143,6 +141,7 @@ class LoginWindow(ui.ScriptWindow):
 		self.virtualKeyboardMode = "ALPHABET"
 		self.virtualKeyboardIsUpper = False
 		self.timeOutMsg = False #Fix
+		self.loggined = FALSE
 		
 	def __del__(self):
 		net.ClearPhaseWindow(net.PHASE_WINDOW_LOGIN, self)
@@ -188,7 +187,7 @@ class LoginWindow(ui.ScriptWindow):
 		
 		self.__LoadLoginInfo("loginInfo.xml")
 		
-		if app.loggined:
+		if self.loggined:
 			self.loginFailureFuncDict = {
 			"WRONGPWD"	: app.Exit,
 			"WRONGMAT"	: app.Exit,
@@ -355,7 +354,7 @@ class LoginWindow(ui.ScriptWindow):
 			self.connectingDialog.Close()
 		self.connectingDialog = None
 
-		if app.loggined:
+		if self.loggined:
 			self.PopupNotifyMessage(localeInfo.LOGIN_CONNECT_FAILURE, self.__ExitGame)
 		elif self.timeOutMsg:
 			self.PopupNotifyMessage(localeInfo.LOGIN_FAILURE_TIMEOUT, self.SetPasswordEditLineFocus)
@@ -385,7 +384,7 @@ class LoginWindow(ui.ScriptWindow):
 		#0000685: [M2EU] ID/password guessing bug fix: always set focus to password field
 		loginFailureFunc=self.loginFailureFuncDict.get(error, self.SetPasswordEditLineFocus)
 
-		if app.loggined:
+		if self.loggined:
 			self.PopupNotifyMessage(loginFailureMsg, self.__ExitGame)
 		else:
 			self.PopupNotifyMessage(loginFailureMsg, loginFailureFunc)
@@ -623,12 +622,12 @@ class LoginWindow(ui.ScriptWindow):
 		self.pwd = None		
 		self.loginnedServer = None
 		self.loginnedChannel = None			
-		app.loggined = FALSE
+		self.loggined = FALSE
 
 		self.loginInfo = loginInfo
 
 		if self.id and self.pwd:
-			app.loggined = TRUE
+			self.loggined = TRUE
 
 		if isAutoLogin:
 			self.Connect(id, pwd)
@@ -727,7 +726,7 @@ class LoginWindow(ui.ScriptWindow):
 		if self.virtualKeyboard:
 			self.virtualKeyboard.Hide()
 
-		if app.loggined and not SKIP_LOGIN_PHASE_SUPPORT_CHANNEL:
+		if self.loggined and not SKIP_LOGIN_PHASE_SUPPORT_CHANNEL:
 			self.serverList.SelectItem(self.loginnedServer-1)
 			self.channelList.SelectItem(self.loginnedChannel-1)
 			self.__OnClickSelectServerButton()
@@ -743,7 +742,7 @@ class LoginWindow(ui.ScriptWindow):
 		if self.virtualKeyboard:
 			self.virtualKeyboard.Show()
 
-		if app.loggined:
+		if self.loggined:
 			self.Connect(self.id, self.pwd)
 			self.connectBoard.Hide()
 			self.loginBoard.Hide()
@@ -751,11 +750,10 @@ class LoginWindow(ui.ScriptWindow):
 			self.connectBoard.Show()
 			self.loginBoard.Show()
 
-		## if users have the login infomation, then don't initialize.2005.9 haho
-		if self.idEditLine == None:
-			self.idEditLine.SetText("")
-		if self.pwdEditLine == None:
-			self.pwdEditLine.SetText("")
+		#if self.idEditLine == None:
+		self.idEditLine.SetText("admin")
+		#if self.pwdEditLine == None:
+		self.pwdEditLine.SetText("123456789")
 
 		self.idEditLine.SetFocus()
 

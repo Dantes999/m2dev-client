@@ -9,6 +9,7 @@ import app
 import colorInfo
 import constInfo
 import background
+import uiinstanceboard
 
 class MapTextToolTip(ui.Window):
 	def __init__(self):
@@ -207,6 +208,9 @@ class MiniMap(ui.ScriptWindow):
 		self.AtlasWindow.LoadWindow()
 		self.AtlasWindow.Hide()
 
+		self.InstanceBoard = uiinstanceboard.InstanceBoardWindow()
+		self.InstanceBoard.Hide()
+
 		self.tooltipMiniMapOpen = MapTextToolTip()
 		self.tooltipMiniMapOpen.SetText(localeInfo.MINIMAP)
 		self.tooltipMiniMapOpen.Show()
@@ -259,6 +263,7 @@ class MiniMap(ui.ScriptWindow):
 		self.MiniMapHideButton = 0
 		self.MiniMapShowButton = 0
 		self.AtlasShowButton = 0
+		self.InstanceButton = 0
 
 		self.tooltipMiniMapOpen = 0
 		self.tooltipMiniMapClose = 0
@@ -267,6 +272,7 @@ class MiniMap(ui.ScriptWindow):
 		self.tooltipAtlasOpen = 0
 		self.tooltipInfo = None
 		self.serverInfo = None
+		self.InstanceBoard = None
 
 	def SetMapName(self, mapName):
 		self.mapName=mapName
@@ -325,6 +331,7 @@ class MiniMap(ui.ScriptWindow):
 			self.ScaleDownButton = self.GetChild("ScaleDownButton")
 			self.MiniMapHideButton = self.GetChild("MiniMapHideButton")
 			self.AtlasShowButton = self.GetChild("AtlasShowButton")
+			self.InstanceButton = self.GetChild("InstanceButton")
 			self.CloseWindow = self.GetChild("CloseWindow")
 			self.MiniMapShowButton = self.GetChild("MiniMapShowButton")
 			self.positionInfo = self.GetChild("PositionInfo")
@@ -338,10 +345,13 @@ class MiniMap(ui.ScriptWindow):
 			self.positionInfo.Hide()
 
 		self.serverInfo.SetText(net.GetServerInfo())
+
 		self.ScaleUpButton.SetEvent(ui.__mem_func__(self.ScaleUp))
 		self.ScaleDownButton.SetEvent(ui.__mem_func__(self.ScaleDown))
 		self.MiniMapHideButton.SetEvent(ui.__mem_func__(self.HideMiniMap))
 		self.MiniMapShowButton.SetEvent(ui.__mem_func__(self.ShowMiniMap))
+
+		self.InstanceButton.SetEvent(ui.__mem_func__(self.OpenInstanceWindow))
 
 		if miniMap.IsAtlas():
 			self.AtlasShowButton.SetEvent(ui.__mem_func__(self.ShowAtlas))
@@ -368,6 +378,10 @@ class MiniMap(ui.ScriptWindow):
 
 		self.AtlasWindow.Destroy()
 		self.AtlasWindow = None
+
+		if self.InstanceBoard:
+			self.InstanceBoard.Close()
+			self.InstanceBoard = None
 
 		self.ClearDictionary()
 
@@ -483,3 +497,13 @@ class MiniMap(ui.ScriptWindow):
 			self.AtlasWindow.Hide()
 		else:
 			self.AtlasWindow.Show()
+
+	def OpenInstanceWindow(self):
+		if self.InstanceBoard.IsShow():
+			self.InstanceBoard.Close()
+		else:
+			self.InstanceBoard.Open()
+
+	def SetInstanceButtonEvent(self, event):
+		if self.InstanceButton:
+			self.InstanceButton.SetEvent(event)
